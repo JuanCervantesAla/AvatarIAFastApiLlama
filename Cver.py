@@ -89,10 +89,12 @@ def load_model_and_tokenizer():
 # ========================================
 # 3. Data preprocessing
 # ========================================
-def format_instruction(example):
+def format_instruction(example, tokenizer):
     """Format the data for instruction tuning"""
+    # Get the actual EOS token string, not the token ID
+    eos_token = tokenizer.decode([tokenizer.eos_token_id]) if tokenizer.eos_token_id is not None else ""
     return {
-        "text": f"### Input: {example['input']}\n### Output: {example['output']}{tokenizer.eos_token}"
+        "text": f"### Input: {example['input']}\n### Output: {example['output']}{eos_token}"
     }
 
 def preprocess_dataset(dataset, tokenizer):
@@ -100,7 +102,7 @@ def preprocess_dataset(dataset, tokenizer):
     
     # Format instructions
     print("Formatting instructions...")
-    dataset = dataset.map(format_instruction)
+    dataset = dataset.map(lambda x: format_instruction(x, tokenizer))
     
     # Tokenize
     def tokenize_function(examples):
